@@ -7,43 +7,61 @@ use App\Repository\FormRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: FormRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    operations: [
+        new GetCollection(normalizationContext: ['groups' => ['form:list']]),
+        new Get(normalizationContext: ['groups' => ['form:read']])
+    ]
+)]
 class Form
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['form:read', 'form:write', 'submission:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['form:list', 'form:read', 'submission:read'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['form:list', 'form:read'])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(['form:list', 'form:read', 'submission:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
+    #[Groups(['form:list', 'form:read', 'submission:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne]
+    #[Groups(['form:list', 'form:read', 'submission:read'])]
     private ?User $user = null;
 
     /**
      * @var Collection<int, Field>
      */
     #[ORM\OneToMany(targetEntity: Field::class, mappedBy: 'form')]
+    #[Groups(["form:read", "submission:read"])]
+    #[MaxDepth(1)]
     private Collection $fields;
 
     /**
      * @var Collection<int, Submission>
      */
     #[ORM\OneToMany(targetEntity: Submission::class, mappedBy: 'form')]
+    #[Groups("form:read")]
     private Collection $submissions;
-
+    
     public function __construct()
     {
         $this->fields = new ArrayCollection();

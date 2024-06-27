@@ -4,8 +4,11 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ApiResource()]
@@ -17,6 +20,7 @@ class User // clearimplements UserInterface
     private $id;
 
     #[ORM\Column(type: "string", length: 255, unique: true)]
+    #[Groups("submission:read")]
     private $email;
 
     #[ORM\Column(type: "string", length: 255)]
@@ -24,6 +28,17 @@ class User // clearimplements UserInterface
 
     #[ORM\Column(type: "json")]
     private $roles = [];
+
+    /**
+     * @var Collection<int, Submission>
+     */
+    #[ORM\OneToMany(targetEntity: Submission::class, mappedBy: 'user')]
+    private Collection $submissions;
+
+    public function __construct()
+    {
+        $this->submissions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -62,6 +77,36 @@ class User // clearimplements UserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Submission>
+     */
+    public function getSubmissions(): Collection
+    {
+        return $this->submissions;
+    }
+
+    public function addSubmission(Submission $submission): static
+    {
+        if (!$this->submissions->contains($submission)) {
+            $this->submissions->add($submission);
+            $submission->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubmission(Submission $submission): static
+    {
+        if ($this->submissions->removeElement($submission)) {
+            // set the owning side to null (unless already changed)
+            if ($submission->getUser() === $this) {
+                $submission->setUser(null);
+            }
+        }
 
         return $this;
     }

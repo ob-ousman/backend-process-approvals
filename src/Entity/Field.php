@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\FieldRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: FieldRepository::class)]
 #[ApiResource()]
@@ -14,18 +15,23 @@ class Field
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups("form:read")]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups("form:read")]
     private ?string $label = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups("form:read")]
     private ?string $type = null;
 
     #[ORM\Column]
+    #[Groups("form:read")]
     private ?bool $required = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups("form:read")]
     private ?array $options = null;
 
     #[ORM\ManyToOne(inversedBy: 'fields')]

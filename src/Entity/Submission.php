@@ -7,28 +7,44 @@ use App\Repository\SubmissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: SubmissionRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    normalizationContext: ['groups' => ['submission:read']],
+)]
 class Submission
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups("submission:read")]
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups("submission:read")]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'submissions')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[Groups("submission:read")]
     private ?Form $form = null;
 
     /**
      * @var Collection<int, FieldValue>
      */
     #[ORM\OneToMany(targetEntity: FieldValue::class, mappedBy: 'submission')]
+    #[Groups("submission:read")]
     private Collection $fieldValues;
+
+    #[ORM\ManyToOne(inversedBy: 'submissions')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups("submission:read")]
+    private ?User $user = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups("submission:read")]
+    private ?int $number = null;
 
     public function __construct()
     {
@@ -90,6 +106,30 @@ class Submission
                 $fieldValue->setSubmission(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getNumber(): ?int
+    {
+        return $this->number;
+    }
+
+    public function setNumber(?int $number): static
+    {
+        $this->number = $number;
 
         return $this;
     }
