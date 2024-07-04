@@ -35,9 +35,16 @@ class User // clearimplements UserInterface
     #[ORM\OneToMany(targetEntity: Submission::class, mappedBy: 'user')]
     private Collection $submissions;
 
+    /**
+     * @var Collection<int, Workflow>
+     */
+    #[ORM\ManyToMany(targetEntity: Workflow::class, mappedBy: 'validateurs')]
+    private Collection $workflows;
+
     public function __construct()
     {
         $this->submissions = new ArrayCollection();
+        $this->workflows = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -106,6 +113,33 @@ class User // clearimplements UserInterface
             if ($submission->getUser() === $this) {
                 $submission->setUser(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Workflow>
+     */
+    public function getWorkflows(): Collection
+    {
+        return $this->workflows;
+    }
+
+    public function addWorkflow(Workflow $workflow): static
+    {
+        if (!$this->workflows->contains($workflow)) {
+            $this->workflows->add($workflow);
+            $workflow->addValidateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkflow(Workflow $workflow): static
+    {
+        if ($this->workflows->removeElement($workflow)) {
+            $workflow->removeValidateur($this);
         }
 
         return $this;

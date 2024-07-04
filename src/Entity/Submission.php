@@ -46,6 +46,10 @@ class Submission
     #[Groups("submission:read")]
     private ?int $number = null;
 
+    #[ORM\Column(nullable: false)]
+    #[Groups("submission:read")]
+    private ?int $status = 0;
+
     public function __construct()
     {
         $this->fieldValues = new ArrayCollection();
@@ -130,6 +134,18 @@ class Submission
     public function setNumber(?int $number): static
     {
         $this->number = $number;
+
+        return $this;
+    }
+
+    public function getStatus(): ?int
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?int $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

@@ -15,23 +15,23 @@ class Field
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups("form:read")]
+    #[Groups(["form:read", "submission:read", "fieldValue:read"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups("form:read")]
+    #[Groups(["form:read", "submission:read", "fieldValue:read"])]
     private ?string $label = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups("form:read")]
+    #[Groups(["form:read", "submission:read", "fieldValue:read"])]
     private ?string $type = null;
 
     #[ORM\Column]
-    #[Groups("form:read")]
+    #[Groups(["form:read", "submission:read", "fieldValue:read"])]
     private ?bool $required = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups("form:read")]
+    #[Groups(["form:read", "submission:read", "fieldValue:read"])]
     private ?array $options = null;
 
     #[ORM\ManyToOne(inversedBy: 'fields')]

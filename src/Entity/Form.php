@@ -14,21 +14,18 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: FormRepository::class)]
 #[ApiResource(
-    operations: [
-        new GetCollection(normalizationContext: ['groups' => ['form:list']]),
-        new Get(normalizationContext: ['groups' => ['form:read']])
-    ]
+    normalizationContext: ['groups' => ['form:read']],
 )]
 class Form
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['form:read', 'form:write', 'submission:read'])]
+    #[Groups(['form:list', 'form:read', 'form:write', 'submission:read', 'workflow:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['form:list', 'form:read', 'submission:read'])]
+    #[Groups(['form:list', 'form:read', 'submission:read', 'workflow:read'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
@@ -61,6 +58,10 @@ class Form
     #[ORM\OneToMany(targetEntity: Submission::class, mappedBy: 'form')]
     #[Groups("form:read")]
     private Collection $submissions;
+
+    #[ORM\OneToOne(inversedBy: 'form')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Workflow $workflow = null;
     
     public function __construct()
     {
@@ -189,6 +190,18 @@ class Form
                 $submission->setForm(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getWorkflow(): ?Workflow
+    {
+        return $this->workflow;
+    }
+
+    public function setWorkflow(Workflow $workflow): static
+    {
+        $this->workflow = $workflow;
 
         return $this;
     }
