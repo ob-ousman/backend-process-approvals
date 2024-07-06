@@ -50,6 +50,10 @@ class Submission
     #[Groups("submission:read")]
     private ?int $status = 0;
 
+    #[ORM\OneToOne(mappedBy: 'submission')]
+    #[Groups("submission:read")]
+    private ?Validation $validation = null;
+
     public function __construct()
     {
         $this->fieldValues = new ArrayCollection();
@@ -146,6 +150,23 @@ class Submission
     public function setStatus(?int $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getValidation(): ?Validation
+    {
+        return $this->validation;
+    }
+
+    public function setValidation(Validation $validation): static
+    {
+        // set the owning side of the relation if necessary
+        if ($validation->getSubmission() !== $this) {
+            $validation->setSubmission($this);
+        }
+
+        $this->validation = $validation;
 
         return $this;
     }

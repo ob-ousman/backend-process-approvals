@@ -40,10 +40,6 @@ class Form
     #[Groups(['form:list', 'form:read', 'submission:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\ManyToOne]
-    #[Groups(['form:list', 'form:read', 'submission:read'])]
-    private ?User $user = null;
-
     /**
      * @var Collection<int, Field>
      */
@@ -118,18 +114,6 @@ class Form
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
 
         return $this;
     }

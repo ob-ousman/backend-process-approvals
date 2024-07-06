@@ -12,36 +12,38 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: WorkflowRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['workflow:read']],
+    denormalizationContext: ['groups' => ['workflow:write']],
 )]
 class Workflow
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['workflow:read', 'form:read'])]
+    #[Groups(['workflow:read', 'form:read', 'workflow:write'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['workflow:read', 'form:read'])]
+    #[Groups(['workflow:read', 'form:read', 'workflow:write'])]
     private ?string $nom = null;
 
-    /**
-     * @var Collection<int, User>
-     */
-    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'workflows')]
-    private Collection $validateurs;
-
     #[ORM\OneToOne(mappedBy: 'workflow', cascade: ['persist', 'remove'])]
-    #[Groups(['workflow:read', 'form:read'])]
+    #[Groups(['workflow:read', 'form:read', 'workflow:write'])]
     private ?Form $form = null;
 
     #[ORM\Column]
-    #[Groups(['workflow:read', 'form:read'])]
+    #[Groups(['workflow:read', 'form:read', 'workflow:write'])]
     private ?\DateTimeImmutable $createdAt = null;
+
+    /**
+     * @var Collection<int, LigneWorkflow>
+     */
+    #[ORM\OneToMany(targetEntity: LigneWorkflow::class, mappedBy: 'workflow')]
+    #[Groups(['workflow:read', 'form:read', 'workflow:write'])]
+    private Collection $ligneWorkflows;
 
     public function __construct()
     {
-        $this->validateurs = new ArrayCollection();
+        $this->ligneWorkflows = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -57,30 +59,6 @@ class Workflow
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, User>
-     */
-    public function getValidateurs(): Collection
-    {
-        return $this->validateurs;
-    }
-
-    public function addValidateur(User $validateur): static
-    {
-        if (!$this->validateurs->contains($validateur)) {
-            $this->validateurs->add($validateur);
-        }
-
-        return $this;
-    }
-
-    public function removeValidateur(User $validateur): static
-    {
-        $this->validateurs->removeElement($validateur);
 
         return $this;
     }
@@ -113,4 +91,35 @@ class Workflow
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, LigneWorkflow>
+     */
+    public function getLigneWorkflows(): Collection
+    {
+        return $this->ligneWorkflows;
+    }
+
+    public function addLigneWorkflow(LigneWorkflow $ligneWorkflow): static
+    {
+        if (!$this->ligneWorkflows->contains($ligneWorkflow)) {
+            $this->ligneWorkflows->add($ligneWorkflow);
+            $ligneWorkflow->setWorkflow($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigneWorkflow(LigneWorkflow $ligneWorkflow): static
+    {
+        if ($this->ligneWorkflows->removeElement($ligneWorkflow)) {
+            // set the owning side to null (unless already changed)
+            if ($ligneWorkflow->getWorkflow() === $this) {
+                $ligneWorkflow->setWorkflow(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
