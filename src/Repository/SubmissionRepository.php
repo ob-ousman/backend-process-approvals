@@ -21,6 +21,22 @@ class SubmissionRepository extends ServiceEntityRepository
         parent::__construct($registry, Submission::class);
     }
 
+    /**
+     * @return int
+     * @throws NonUniqueResultException
+     */
+    public function getNextNumber(): int
+    {
+        $lastNumero = $this->createQueryBuilder('e')
+        ->select('e.number')
+        ->orderBy('e.number', 'DESC')
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+
+        return $lastNumero ? $lastNumero['number'] + 1 : 1;
+    }
+
     //    /**
     //     * @return Submission[] Returns an array of Submission objects
     //     */
