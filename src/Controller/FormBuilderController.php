@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Form;
 use App\Entity\Field;
 use App\Repository\FormRepository;
+use App\Repository\UserRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,17 +18,15 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api/form-builder')]
 class FormBuilderController extends AbstractController
 {
-    private $entityManager;
-    private $serializer;
-    private $validator;
-    private $formRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, ValidatorInterface $validator, FormRepository $formRepository)
-    {
-        $this->entityManager = $entityManager;
-        $this->serializer = $serializer;
-        $this->validator = $validator;
-        $this->formRepository = $formRepository;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private UserRepository $userRepository,
+        private SerializerInterface $serializer,
+        private ValidatorInterface $validator,
+        private NotificationService $notificationService,
+        private FormRepository $formRepository
+    ) {
     }
 
     #[Route('', name: 'create_full_form', methods: ['POST'])]
@@ -88,8 +88,15 @@ class FormBuilderController extends AbstractController
             $this->entityManager->flush();
             $this->entityManager->commit();
 
-            return $this->json($form, Response::HTTP_CREATED, [], ['groups' => 'form:read']);
+            $user = $this->userRepository->find(1);
+            $this->notificationService->createNotification(
+                $user,
+                1,
+                'Ajout nouveau formulaire',
+                'Nouveau formulaire ajouté: '.$form->getTitle()
+            );
 
+            return $this->json($form, Response::HTTP_CREATED, [], ['groups' => 'form:read']);
         } catch (\Exception $e) {
             $this->entityManager->rollback();
             return $this->json(['error' => 'Aune erreur est survenue lors de la création du formulaire.'], Response::HTTP_INTERNAL_SERVER_ERROR);

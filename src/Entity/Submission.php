@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\SubmissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,7 +15,9 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 #[ORM\Entity(repositoryClass: SubmissionRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['submission:read']],
+    order: ['createdAt' => 'DESC']
 )]
+#[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
 class Submission
 {
     #[ORM\Id]

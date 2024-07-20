@@ -11,13 +11,16 @@ use App\Repository\FormRepository;
 use App\Repository\FieldRepository;
 use App\Repository\SubmissionRepository;
 use App\Repository\UserRepository;
+use App\Repository\ValidationRepository;
 use App\Repository\WorkflowRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Serializer;
 
 #[Route('/api/submissions')]
 class SubmissionController extends AbstractController
@@ -25,9 +28,10 @@ class SubmissionController extends AbstractController
     public function __construct(
         private UserRepository $userRepository,
         private FormRepository $formRepository,
-        private SubmissionRepository $SubmissionRepository,
+        private SubmissionRepository $submissionRepository,
         private WorkflowRepository $workflowRepository,
         private FieldRepository $fieldRepository,
+        private NotificationService $notificationService,
         private EntityManagerInterface $em
     ) {
     }
@@ -50,7 +54,7 @@ class SubmissionController extends AbstractController
             $submission->setForm($form);
             $submission->setCreatedAt(new \DateTimeImmutable());
             $submission->setUser($user);
-            $submission->setNumber($this->SubmissionRepository->getNextNumber());
+            $submission->setNumber($this->submissionRepository->getNextNumber());
 
             $this->em->persist($submission);
             $this->em->flush();
@@ -78,8 +82,18 @@ class SubmissionController extends AbstractController
             if (!$validation) {
                 throw new \Exception('Echec creaction de la validation');
             }
-            
+
+            //on persiste tout avec un commit
             $this->em->getConnection()->commit();
+
+            //maintenant on enregistre une notification
+            $user = $this->userRepository->find(1);
+            $this->notificationService->createNotification(
+                $user,
+                1,
+                'Requête initiée',
+                'Requête #'.$submission->getNumber().' a été initiée'
+            );
 
             return $this->json($submission);
         } catch (\Exception $e) {
@@ -117,6 +131,7 @@ class SubmissionController extends AbstractController
             //si c'est la premiere etape, marquer comme statut en cours
             if($isPremierValidateur){
                 $ligneValidation->setStatus(1);
+                $ligneValidation->setReceivedAt(new \DateTimeImmutable());
                 $isPremierValidateur = false;
             }else{
                 $ligneValidation->setStatus(0);
@@ -149,4 +164,6 @@ class SubmissionController extends AbstractController
 
         return $validation;
     }
+
+    
 }

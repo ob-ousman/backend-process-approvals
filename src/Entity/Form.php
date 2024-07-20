@@ -15,6 +15,7 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 #[ORM\Entity(repositoryClass: FormRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['form:read']],
+    order: ['createdAt' => 'DESC']
 )]
 class Form
 {

@@ -35,9 +35,16 @@ class User // clearimplements UserInterface
     #[ORM\OneToMany(targetEntity: Submission::class, mappedBy: 'user')]
     private Collection $submissions;
 
+    /**
+     * @var Collection<int, UserNotification>
+     */
+    #[ORM\OneToMany(targetEntity: UserNotification::class, mappedBy: 'user')]
+    private Collection $userNotifications;
+
     public function __construct()
     {
         $this->submissions = new ArrayCollection();
+        $this->userNotifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -105,6 +112,36 @@ class User // clearimplements UserInterface
             // set the owning side to null (unless already changed)
             if ($submission->getUser() === $this) {
                 $submission->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserNotification>
+     */
+    public function getUserNotifications(): Collection
+    {
+        return $this->userNotifications;
+    }
+
+    public function addUserNotification(UserNotification $userNotification): static
+    {
+        if (!$this->userNotifications->contains($userNotification)) {
+            $this->userNotifications->add($userNotification);
+            $userNotification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserNotification(UserNotification $userNotification): static
+    {
+        if ($this->userNotifications->removeElement($userNotification)) {
+            // set the owning side to null (unless already changed)
+            if ($userNotification->getUser() === $this) {
+                $userNotification->setUser(null);
             }
         }
 

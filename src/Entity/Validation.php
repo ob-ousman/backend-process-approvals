@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ValidationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,6 +15,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     normalizationContext: ['groups' => ['validation:read']],
 )]
+#[ApiFilter(SearchFilter::class, properties: ['status' => 'exact'])]
 class Validation
 {
     #[ORM\Id]
@@ -36,6 +39,14 @@ class Validation
     #[ORM\OneToMany(targetEntity: LigneValidation::class, mappedBy: 'validation')]
     #[Groups("validation:read", "submission:read")]
     private Collection $ligneValidation;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups("validation:read", "submission:read")]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups("validation:read", "submission:read")]
+    private ?string $comment = null;
 
     public function __construct()
     {
@@ -97,6 +108,30 @@ class Validation
                 $ligneValidation->setValidation(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): static
+    {
+        $this->comment = $comment;
 
         return $this;
     }
